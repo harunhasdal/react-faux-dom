@@ -1,5 +1,5 @@
 var test = require('tape')
-var mk = require('./utils/mk')
+var mk = require('./test-utils/mk')
 
 test('modify properties', function (t) {
   var el = mk()
@@ -77,16 +77,15 @@ test('removing a child', function (t) {
 
 test('styles', function (t) {
   var el = mk()
-    .style({
-      'stroke-width': '2px',
-      opacity: 0.5
-    })
+    .style('stroke-width', '2px')
+    .style('opacity', 0.5)
 
-  t.plan(3)
+  t.plan(4)
   var styles = el.node().props.style
   t.equal(styles.strokeWidth, '2px')
   t.equal(styles.opacity, 0.5)
   t.equal(el.style('stroke-width'), '2px')
+  t.equal(el.style('width'), '')
 })
 
 test('text', function (t) {

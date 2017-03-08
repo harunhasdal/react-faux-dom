@@ -1,5 +1,5 @@
 var test = require('tape')
-var mk = require('./utils/mk')
+var mk = require('./test-utils/mk')
 
 test('simple node', function (t) {
   var el = mk().node()
@@ -88,4 +88,23 @@ test('toReact does not mutate the state', function (t) {
   t.equal(typeof el.props.style.setProperty, 'function')
   el.toReact()
   t.equal(typeof el.props.style.setProperty, 'function')
+})
+
+test('React elements have a ref attribute', function (t) {
+  var el = mk().node()
+  var tree = el.toReact()
+
+  t.plan(4)
+  t.equal(typeof tree.ref, 'function')
+  t.equal(el.getBoundingClientRect(), undefined)
+
+  var fakeClientRect = {}
+  var fakeComponent = {
+    getBoundingClientRect: function () {
+      return fakeClientRect
+    }
+  }
+  tree.ref(fakeComponent)
+  t.equal(el.component, fakeComponent)
+  t.equal(el.getBoundingClientRect(), fakeClientRect)
 })

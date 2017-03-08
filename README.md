@@ -5,48 +5,103 @@
 DOM like data structure to be mutated by [D3][] et al, then rendered to [React][] elements.
 
 ```javascript
-// Create your element.
-var el = ReactFauxDOM.createElement('div')
+class SomeChart extends React.Component {
+  render () {
+    // Create your element.
+    var el = ReactFauxDOM.createElement('div')
 
-// Change stuff using actual DOM functions.
-// Even perform CSS selections.
-el.style.setProperty('color', 'red')
-el.setAttribute('class', 'box')
+    // Change stuff using actual DOM functions.
+    // Even perform CSS selections!
+    el.style.setProperty('color', 'red')
+    el.setAttribute('class', 'box')
 
-// Render it to React elements.
-return el.toReact()
+    // Render it to React elements.
+    return el.toReact()
+  }
+}
 
-// Yields: <div style='color: red;' className='box'></div>
+// Yields: <div style='color: red;' class='box'></div>
 ```
 
-It supports a wide range of DOM operations and will fool most libraries but it isn't exhaustive (the full DOM API is ludicrously large). It supports enough to work with D3 but will require you to fork and add to the project if you encounter something that's missing.
+There are also mixins available for convenience, giving you a clean API and animation support:
+
+```javascript
+// Inside componentWillMount.
+var faux = this.connectFauxDOM('div', 'chart')
+d3.performSomeAnimation(faux)
+this.animateFauxDOM(3500) // duration + margin
+
+// Inside render.
+return {this.state.chart};
+```
+
+ReactFauxDOM supports a wide range of DOM operations and will fool most libraries but it isn't exhaustive (the full DOM API is ludicrously large). It supports enough to work with D3 but will require you to fork and add to the project if you encounter something that's missing.
 
 You can think of this as a bare bones [jsdom][] that's built to bridge the gap between the declarative React and the imperative JavaScript world. We just need to expand it as we go along since jsdom is a huge project that solves different problems.
 
 I'm trying to keep it light so as not to slow down your render function. I want efficient, declarative and stateless code, but I don't want to throw away previous tools to get there.
 
-## Limitations
+## Installation
 
-It's great for...
+You can install the package `react-faux-dom` from npm as you usually would. Then use webpack or browserify (etc) to bundle the source into your build. If you need a pre-built UMD version you can use [unpkg][].
 
- * Static D3 components or other such libraries (things like Backbone should work too!)
- * D3 components with simple state and event interaction, like tooltips on charts
- * D3 components such as progress bars that can be animated using [react-motion][], for example
+You can find the latest version of the UMD version at https://unpkg.com/react-faux-dom/dist/ReactFauxDOM.min.js
 
-It's not so great for...
+## Example
 
- * Physics based D3 components or anything using a lot of DOM mutation and state
- * Linked to the previous one, brushing and filtering of selections using the built in stateful D3 tools
- * Essentially: Anything with a lot of DOM mutation from timers, events or internal state will be hard to use
+Complex usage with [D3][], ES6 modules and animations.
 
-If you keep it stateless and React-ish then you'll be fine. Use tools like D3 to fluently build your charts / DOM, don't use it as an animation / physics / DOM mutation library, that doesn't work within React. See the state example linked below for a simple way to handle state, events and D3.
+```javascript
+import React from 'react'
+import * as d3 from 'd3'
+import Faux from 'react-faux-dom'
 
-## Usage
+const MyReactClass = React.createClass({
+  mixins: [
+    Faux.mixins.core,
+    Faux.mixins.anim
+  ],
+
+  getInitialState () {
+    return {
+      chart: 'loading...'
+    }
+  },
+
+  componentDidMount () {
+    const faux = this.connectFauxDOM('div.renderedD3', 'chart')
+
+    d3.select(faux)
+      .append('div')
+      .html('Hello World!')
+
+    this.animateFauxDOM(800)
+  },
+
+  render () {
+    return (
+      <div>
+        <h2>Here is some fancy data:</h2>
+        <div className='renderedD3'>
+          {this.state.chart}
+        </div>
+      </div>
+    )
+  }
+})
+
+export default MyReactClass
+```
+
+### More usage info:
 
  * Full [documentation][] with current DOM API coverage
  * [An example static chart ][lab-chart] ([source][lab-chart-source])
+ * [An example animated chart using the mixin][mixin-example] 
  * [A simple example using state and events][lab-state] ([source][lab-state-source])
+ * [A d3 sankey diagram builder][sankey-app] ([source][sankey-app-source])
  * [d3-react-sparkline][], a small component I built at [Qubit][]
+ * [component-kit][], "UI-Kit for Rapidly Creating Dashboards"
 
 ## Development
 
@@ -89,3 +144,8 @@ Do what you want. Learn as much as you can. Unlicense more software.
 [qubit]: http://www.qubit.com/
 [documentation]: ./DOCUMENTATION.md
 [react-motion]: https://github.com/chenglou/react-motion
+[sankey-app]: http://nick.balestra.ch/sankey/
+[sankey-app-source]: https://github.com/nickbalestra/sankey
+[mixin-example]: ./examples/animate-d3-with-mixin
+[component-kit]: https://github.com/kennetpostigo/component-kit
+[unpkg]: https://unpkg.com/
